@@ -401,7 +401,13 @@ gaih_inet(const char *name, const struct gaih_service *service,
 	int rc;
 	int v4mapped = (req->ai_family == PF_UNSPEC || req->ai_family == PF_INET6)
 			&& (req->ai_flags & AI_V4MAPPED);
-	unsigned seen = __check_pf();
+	unsigned seen = 0;
+	if (req->ai_flags & AI_ADDRCONFIG) {
+		/* "seen" is only used when AI_ADDRCONFIG is specified.
+		   Avoid unnecessary call to __check_pf() otherwise
+		   since it can be costly especially when RSBAC-Net is enabled.  */
+		seen = __check_pf();
+	}
 
 	memset(&nullserv, 0, sizeof(nullserv));
 
@@ -628,12 +634,19 @@ gaih_inet(const char *name, const struct gaih_service *service,
 		char buffer[sizeof("ffff:ffff:ffff:ffff:ffff:ffff:255.255.255.255")];
 
 		while (at2 != NULL) {
-			if (req->ai_flags & AI_CANONNAME) {
+			c = inet_ntop(at2->family, at2->addr, buffer, sizeof(buffer));
+			if (c) {
+				namelen = strlen(c) + 1;
+			} else if (req->ai_flags & AI_CANONNAME) {
 				struct hostent *h = NULL;
 				int herrno;
 				struct hostent th;
 				size_t tmpbuflen = 512;
 				char *tmpbuf;
+
+				/* Hint says numeric, but address is not */
+				if (req->ai_flags & AI_NUMERICHOST)
+					return -EAI_NONAME;
 
 				do {
 					tmpbuflen *= 2;
@@ -656,9 +669,7 @@ gaih_inet(const char *name, const struct gaih_service *service,
 					return -EAI_SYSTEM;
 				}
 
-				if (h == NULL)
-					c = inet_ntop(at2->family, at2->addr, buffer, sizeof(buffer));
-				else
+				if (h != NULL)
 					c = h->h_name;
 
 				if (c == NULL)

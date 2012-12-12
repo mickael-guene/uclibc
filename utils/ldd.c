@@ -546,6 +546,7 @@ static void find_needed_libraries(ElfW(Ehdr) *ehdr, ElfW(Dyn) *dynamic, int is_s
 	}
 }
 
+#ifdef __LDSO_LDD_SUPPORT__
 static struct library *find_elf_interpreter(ElfW(Ehdr) *ehdr)
 {
 	ElfW(Phdr) *phdr;
@@ -611,6 +612,7 @@ static struct library *find_elf_interpreter(ElfW(Ehdr) *ehdr)
 	}
 	return NULL;
 }
+#endif /* __LDSO_LDD_SUPPORT__ */
 
 /* map the .so, and locate interesting pieces */
 /*
@@ -620,11 +622,13 @@ static int find_dependencies(char *filename)
 {
 	int is_suid = 0;
 	FILE *thefile;
-	struct library *interp;
 	struct stat statbuf;
 	ElfW(Ehdr) *ehdr = NULL;
 	ElfW(Shdr) *dynsec = NULL;
 	ElfW(Dyn) *dynamic = NULL;
+#ifdef __LDSO_LDD_SUPPORT__
+	struct library *interp;
+#endif
 
 	if (filename == not_found)
 		return 0;
@@ -681,9 +685,9 @@ foo:
 	}
 
 	interpreter_already_found = 0;
+#ifdef __LDSO_LDD_SUPPORT__
 	interp = find_elf_interpreter(ehdr);
 
-#ifdef __LDSO_LDD_SUPPORT__
 	if (interp
 	    && (ehdr->e_type == ET_EXEC || ehdr->e_type == ET_DYN)
 	    && ehdr->e_ident[EI_CLASS] == ELFCLASSM
@@ -701,9 +705,8 @@ foo:
 				"LD_TRACE_LOADED_OBJECTS=1",
 				NULL
 			};
+# ifdef __LDSO_STANDALONE_SUPPORT__
 			char * lib_path = getenv("LD_LIBRARY_PATH");
-
-#ifdef __LDSO_STANDALONE_SUPPORT__
 			/* The 'extended' environment inclusing the LD_LIBRARY_PATH */
 			static char *ext_environment[ARRAY_SIZE(environment) + 1];
 			char **envp = (char **) environment;
@@ -738,21 +741,21 @@ foo:
 				execle(TRUSTED_LDSO, TRUSTED_LDSO, filename, NULL, envp);
 				_exit(0xdead);
 			}
-#else
+# else
 			if ((pid = vfork()) == 0) {
 				/* Cool, it looks like we should be able to actually
 				 * run this puppy.  Do so now... */
 				execle(filename, filename, NULL, environment);
 				_exit(0xdead);
 			}
-#endif
+# endif
 			/* Wait till it returns */
 			waitpid(pid, &status, 0);
 
-#ifdef __LDSO_STANDALONE_SUPPORT__
+# ifdef __LDSO_STANDALONE_SUPPORT__
 			/* Do not leak */
 			free(lib_path);
-#endif
+# endif
 
 			if (WIFEXITED(status) && WEXITSTATUS(status) == 0) {
 				return 1;
