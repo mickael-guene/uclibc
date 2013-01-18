@@ -188,6 +188,14 @@ void PERFORM_BOOTSTRAP_RELOC(ELF_RELOC *rpnt, unsigned long *reloc_addr,
 			break;
 		case R_ARM_COPY:
 			break;
+		case R_ARM_FUNCDESC_VALUE:
+			{
+				struct funcdesc_value *dst = (struct funcdesc_value *) reloc_addr;
+
+				dst->entry_point = DL_RELOC_ADDR(load_addr, *reloc_addr);
+				dst->got_value = load_addr.got_value;
+			}
+			break;
 		default:
 			//SEND_STDERR("Unsupported relocation type\n");
 			_dl_exit(1);

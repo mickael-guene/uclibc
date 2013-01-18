@@ -209,25 +209,30 @@ _dl_do_reloc (struct elf_resolve *tpnt,struct r_scope_elem *scope,
 	symname = strtab + symtab[symtab_index].st_name;
 
 	if (symtab_index) {
-		symbol_addr = _dl_find_hash(symname, scope, tpnt,
-						elf_machine_type_class(reloc_type), &sym_ref);
+		if (ELF_ST_BIND (symtab[symtab_index].st_info) == STB_LOCAL) {
+			symbol_addr = (unsigned long) DL_RELOC_ADDR(tpnt->loadaddr, symtab[symtab_index].st_value);
+			def_mod = tpnt;
+		} else {
+			symbol_addr = _dl_find_hash(symname, scope, tpnt,
+							elf_machine_type_class(reloc_type), &sym_ref);
 
-		/*
-		 * We want to allow undefined references to weak symbols - this might
-		 * have been intentional.  We should not be linking local symbols
-		 * here, so all bases should be covered.
-		 */
-		if (!symbol_addr && (ELF_ST_TYPE(symtab[symtab_index].st_info) != STT_TLS)
-			&& (ELF_ST_BIND(symtab[symtab_index].st_info) != STB_WEAK)) {
-			/* This may be non-fatal if called from dlopen.  */
-			return 1;
+			/*
+			 * We want to allow undefined references to weak symbols - this might
+			 * have been intentional.  We should not be linking local symbols
+			 * here, so all bases should be covered.
+			 */
+			if (!symbol_addr && (ELF_ST_TYPE(symtab[symtab_index].st_info) != STT_TLS)
+				&& (ELF_ST_BIND(symtab[symtab_index].st_info) != STB_WEAK)) {
+				/* This may be non-fatal if called from dlopen.  */
+				return 1;
 
+			}
+			if (_dl_trace_prelink) {
+				_dl_debug_lookup (symname, tpnt, &symtab[symtab_index],
+						&sym_ref, elf_machine_type_class(reloc_type));
+			}
+			def_mod = sym_ref.tpnt;
 		}
-		if (_dl_trace_prelink) {
-			_dl_debug_lookup (symname, tpnt, &symtab[symtab_index],
-					&sym_ref, elf_machine_type_class(reloc_type));
-		}
-		def_mod = sym_ref.tpnt;
 	} else {
 		/*
 		 * Relocs against STN_UNDEF are usually treated as using a
@@ -290,6 +295,29 @@ _dl_do_reloc (struct elf_resolve *tpnt,struct r_scope_elem *scope,
 			case R_ARM_COPY:
 				_dl_memcpy((void *) reloc_addr,
 					   (void *) symbol_addr, symtab[symtab_index].st_size);
+				break;
+			case R_ARM_FUNCDESC_VALUE:
+				{
+					struct funcdesc_value funcval;
+					struct funcdesc_value *dst = (struct funcdesc_value *) reloc_addr;
+
+					if (symbol_addr)
+						funcval.entry_point = (void*)symbol_addr;
+					else
+						funcval.entry_point = DL_RELOC_ADDR(tpnt->loadaddr, *reloc_addr);
+
+					funcval.got_value = def_mod->loadaddr.got_value;
+					*dst = funcval;
+				}
+				break;
+			case R_ARM_FUNCDESC:
+				{
+					unsigned long reloc_value = *reloc_addr;
+
+					reloc_value = (unsigned long) _dl_funcdesc_for(symbol_addr + reloc_value, sym_ref.tpnt->loadaddr.got_value);
+
+					*reloc_addr = reloc_value;
+				}
 				break;
 #if defined USE_TLS && USE_TLS
 			case R_ARM_TLS_DTPMOD32:
