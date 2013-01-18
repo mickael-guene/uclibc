@@ -44,6 +44,11 @@ extern int _dl_linux_resolve(void);
 
 unsigned long _dl_linux_resolver(struct elf_resolve *tpnt, int reloc_entry)
 {
+#if __FDPIC__
+    /* TODO : fdpic job to do */
+    while(1) ;
+    return 0;
+#else
 	ELF_RELOC *this_reloc;
 	char *strtab;
 	char *symname;
@@ -96,6 +101,7 @@ unsigned long _dl_linux_resolver(struct elf_resolve *tpnt, int reloc_entry)
 #endif
 
 	return new_addr;
+#endif
 }
 
 static int
@@ -193,7 +199,7 @@ _dl_do_reloc (struct elf_resolve *tpnt,struct r_scope_elem *scope,
 	struct elf_resolve *def_mod = 0;
 	int goof = 0;
 
-	reloc_addr = (unsigned long *) (tpnt->loadaddr + (unsigned long) rpnt->r_offset);
+	reloc_addr   = (unsigned long *) DL_RELOC_ADDR(tpnt->loadaddr, rpnt->r_offset);
 
 	reloc_type = ELF_R_TYPE(rpnt->r_info);
 	symtab_index = ELF_R_SYM(rpnt->r_info);
@@ -279,7 +285,7 @@ _dl_do_reloc (struct elf_resolve *tpnt,struct r_scope_elem *scope,
 				*reloc_addr = symbol_addr;
 				break;
 			case R_ARM_RELATIVE:
-				*reloc_addr += (unsigned long) tpnt->loadaddr;
+				*reloc_addr = DL_RELOC_ADDR(tpnt->loadaddr, *reloc_addr);
 				break;
 			case R_ARM_COPY:
 				_dl_memcpy((void *) reloc_addr,
@@ -316,6 +322,11 @@ static int
 _dl_do_lazy_reloc (struct elf_resolve *tpnt, struct r_scope_elem *scope,
 		   ELF_RELOC *rpnt, ElfW(Sym) *symtab, char *strtab)
 {
+#ifdef __FDPIC__
+    /* TODO : fdpic job to do */
+    while(1) ;
+    return 0;
+#else
 	int reloc_type;
 	unsigned long *reloc_addr;
 
@@ -342,7 +353,7 @@ _dl_do_lazy_reloc (struct elf_resolve *tpnt, struct r_scope_elem *scope,
 
 #endif
 	return 0;
-
+#endif
 }
 
 void _dl_parse_lazy_relocation_information(struct dyn_elf *rpnt,
@@ -357,3 +368,6 @@ int _dl_parse_relocation_information(struct dyn_elf *rpnt,
 	return _dl_parse(rpnt->dyn, scope, rel_addr, rel_size, _dl_do_reloc);
 }
 
+#ifndef IS_IN_libdl
+# include "../../libc/sysdeps/linux/arm/crtreloc.c"
+#endif

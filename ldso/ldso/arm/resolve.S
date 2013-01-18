@@ -103,6 +103,7 @@
  .align 4      @ 16 byte boundary and there are 32 bytes below (arm case)
  #if !defined(__thumb__) || defined(__thumb2__)
  .arm
+ .hidden _dl_linux_resolve
  .globl _dl_linux_resolve
  .type _dl_linux_resolve,%function
  .align 4;

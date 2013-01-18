@@ -139,7 +139,7 @@ __asm__(
 /* Handle relocation of the symbols in the dynamic loader. */
 static __always_inline
 void PERFORM_BOOTSTRAP_RELOC(ELF_RELOC *rpnt, unsigned long *reloc_addr,
-	unsigned long symbol_addr, unsigned long load_addr, Elf32_Sym *symtab)
+	unsigned long symbol_addr, DL_LOADADDR_TYPE load_addr, Elf32_Sym *symtab)
 {
 	switch (ELF_R_TYPE(rpnt->r_info)) {
 		case R_ARM_NONE:
@@ -170,7 +170,7 @@ void PERFORM_BOOTSTRAP_RELOC(ELF_RELOC *rpnt, unsigned long *reloc_addr,
 						_dl_exit(1);
 					}
 #else
-					SEND_STDERR("R_ARM_PC24 relocation out of range\n");
+					//SEND_STDERR("R_ARM_PC24 relocation out of range\n");
 					_dl_exit(1);
 #endif
 				}
@@ -184,12 +184,44 @@ void PERFORM_BOOTSTRAP_RELOC(ELF_RELOC *rpnt, unsigned long *reloc_addr,
 			*reloc_addr = symbol_addr;
 			break;
 		case R_ARM_RELATIVE:
-			*reloc_addr += load_addr;
+			*reloc_addr = DL_RELOC_ADDR(load_addr, *reloc_addr);
 			break;
 		case R_ARM_COPY:
 			break;
 		default:
-			SEND_STDERR("Unsupported relocation type\n");
+			//SEND_STDERR("Unsupported relocation type\n");
 			_dl_exit(1);
 	}
 }
+
+#ifdef __FDPIC__
+#undef DL_START
+#define DL_START(X)   \
+static void  __attribute__ ((used)) \
+_dl_start (Elf32_Addr dl_boot_got_pointer, \
+          struct elf32_fdpic_loadmap *dl_boot_progmap, \
+          struct elf32_fdpic_loadmap *dl_boot_ldsomap, \
+          Elf32_Dyn *dl_boot_ldso_dyn_pointer, \
+          struct funcdesc_value *dl_main_funcdesc, \
+          X)
+
+/*
+ * Transfer control to the user's application, once the dynamic loader
+ * is done.  We return the address of the function's entry point to
+ * _dl_boot, see boot1_arch.h.
+ */
+#define START()        do {                                                    \
+  struct elf_resolve *exec_mod = _dl_loaded_modules;                   \
+  dl_main_funcdesc->entry_point = _dl_elf_main;                                \
+  while (exec_mod->libtype != elf_executable)                          \
+    exec_mod = exec_mod->next;                                         \
+  dl_main_funcdesc->got_value = exec_mod->loadaddr.got_value;          \
+  return;                                                              \
+} while (0)
+
+// we use __aeabi_ldiv0 somwhere and so we need to have raise symbol
+int raise(int sig)
+{
+  _dl_exit(1);
+}
+#endif
