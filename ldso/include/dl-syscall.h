@@ -116,7 +116,7 @@ static __always_inline _syscall5(ssize_t, __syscall_pread, int, fd, void *, buf,
 static __always_inline ssize_t
 _dl_pread(int fd, void *buf, size_t count, off_t offset)
 {
-	return __syscall_pread(fd, buf, count, offset, offset >> 31);
+	return __syscall_pread(fd, buf, count, __LONG_LONG_PAIR(offset, offset >> 32));
 }
 #elif defined __NR_pread
 #define __NR___syscall_pread __NR_pread
