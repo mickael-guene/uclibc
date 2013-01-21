@@ -93,6 +93,67 @@ ARM register quick reference:
     pc      r15          program counter
 */
 
+#if defined(__FDPIC__)
+#include <features.h>
+#include <bits/arm_asm.h>
+
+.text
+	.globl	_start
+
+_start:
+# start by self relocation
+	sub r4, pc, #8
+	ldr r1, .L__ROFIXUP_LIST__
+	add r1, r1, r4
+	ldr r2, .L__ROFIXUP_END__
+	add r2, r2, r4
+	mov r0, r7
+	push {r9, r10}
+	bl __self_reloc
+	pop {r9, r10}
+	mov r9, r0
+# Clear the frame pointer since this is the outermost frame
+	mov r3, #0
+	mov fp, r3
+# now fill __uClibc_main arguments
+	sub sp, sp, #16 //reserve space for 3 args (keep aligment)
+	ldr r0, .L_main_got_funcdesc //r0 got fundesc of main
+	ldr r0, [r9, r0]
+	ldr r1, [sp, #16] //argc
+	add r2, sp, #20 //char argv
+	ldr r3, .L_init_got_funcdesc //r3 got init
+	ldr r3, [r9, r3]
+	ldr r4, .L_fini_got_funcdesc //sp + 0 got fini
+	ldr r4, [r9, r4]
+	str r4, [sp, #0]
+	mov r4, r10 //sp + 4 got rtld_fini
+	str r4, [sp, #4]
+	mov r4, r2 // TODO : not clear for me what stack_end should be ...
+	str r4, [sp, #8] //sp + 8 got stack_end
+	bl __uClibc_main
+	/* should never get here....*/
+	bl abort
+.L__ROFIXUP_LIST__:
+	.word __ROFIXUP_LIST__ - _start
+.L__ROFIXUP_END__:
+	.word __ROFIXUP_END__ - _start
+.L_main_got_funcdesc:
+	.word main(GOTFUNCDESC)
+.L_init_got_funcdesc:
+	.word _init(GOTFUNCDESC)
+.L_fini_got_funcdesc:
+	.word _fini(GOTFUNCDESC)
+
+/* TODO : needed ? */
+/* Define a symbol for the first piece of initialized data.  */
+	.data
+	.globl __data_start
+__data_start:
+	.long 0
+	.weak data_start
+	data_start = __data_start
+
+#else /* defined(__FDPIC__) */
 #include <features.h>
 #include <bits/arm_asm.h>
 
@@ -251,3 +312,4 @@ __data_start:
 	.long 0
 	.weak data_start
 	data_start = __data_start
+#endif /* defined(__FDPIC__) */
