@@ -44,12 +44,13 @@ got value
 	    "  str r4, [sp, #4]\n"
 	    "  str r5, [sp, #0]\n"
 	    "  mov r9, r0\n"
-	    "  push {r8, r9}\n"
+/* save r9 into r4 */
+	    "  mov r4, r9\n"
 	    "  bl _dl_start;\n"
-	    "  pop {r8, r9}\n"
 /* now compute parameters for entry point according to fdpic abi */
 	    "  ldr r10, .L_dl_fini_gotofffuncdesc\n"
-	    "  add r10, r10, r9\n"
+/* use save got value from r4 */
+	    "  add r10, r10, r4\n"
 	    "  ldr r5, [sp, #8]\n"
 	    "  ldr r9, [sp, #12]\n"
 	    "  add sp, sp, #16\n"
