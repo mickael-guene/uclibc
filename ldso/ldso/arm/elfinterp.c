@@ -304,7 +304,7 @@ _dl_do_reloc (struct elf_resolve *tpnt,struct r_scope_elem *scope,
 					if (symbol_addr)
 						funcval.entry_point = (void*)symbol_addr;
 					else
-						funcval.entry_point = DL_RELOC_ADDR(tpnt->loadaddr, *reloc_addr);
+						funcval.entry_point = DL_RELOC_ADDR(tpnt->loadaddr, *reloc_addr); /* local or weak undefined */
 
 					funcval.got_value = def_mod->loadaddr.got_value;
 					*dst = funcval;
@@ -314,7 +314,10 @@ _dl_do_reloc (struct elf_resolve *tpnt,struct r_scope_elem *scope,
 				{
 					unsigned long reloc_value = *reloc_addr;
 
-					reloc_value = (unsigned long) _dl_funcdesc_for(symbol_addr + reloc_value, sym_ref.tpnt->loadaddr.got_value);
+					if (symbol_addr)
+						reloc_value = (unsigned long) _dl_funcdesc_for(symbol_addr + reloc_value, sym_ref.tpnt->loadaddr.got_value);
+					else
+						reloc_value = 0; //We do reloc against an undefine weak symbol. Set funcdesc to zero.
 
 					*reloc_addr = reloc_value;
 				}
