@@ -14,6 +14,8 @@
 
 #ifndef _IEEE_LIBM
 
+libm_hidden_proto(matherr);
+
 int matherr(struct exception *x)
 {
 	int n=0;

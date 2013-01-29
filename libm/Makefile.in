@@ -24,6 +24,7 @@ subdirs += libm libm/$(TARGET_ARCH)
 
 CFLAGS-libm := -DNOT_IN_libc -DIS_IN_libm $(SSP_ALL_CFLAGS)
 # Enable ansi behaviour which set errno
+CFLAGS-libm += -D_POSIX_MODE
 #CFLAGS-libm += -D_IEEE_LIBM
 
 LDFLAGS-$(UCLIBC_FORMAT_DSBT_ELF)-libm.so := -Wl,--dsbt-index=5
