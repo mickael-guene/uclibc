@@ -23,7 +23,9 @@
    never actually be called.  */
 
 #include <stdlib.h>
-
+#if defined(__GNUC__) && __GNUC__ >= 4 && __GNUC_MINOR__ >= 7
+ /* these routines are now into libgcc.a */
+#else
 attribute_hidden void __aeabi_unwind_cpp_pr0 (void);
 attribute_hidden void __aeabi_unwind_cpp_pr0 (void)
 {
@@ -38,3 +40,4 @@ attribute_hidden void __aeabi_unwind_cpp_pr2 (void);
 attribute_hidden void __aeabi_unwind_cpp_pr2 (void)
 {
 }
+#endif
