@@ -112,6 +112,7 @@ __clone:
 	DO_CALL (clone)
 	movs	a1, a1
 	blt	__error
+	IT(t, ne)
 	ldmnefd	sp!, {r4}
 	IT(t, ne)
 #if defined(__USE_BX__)

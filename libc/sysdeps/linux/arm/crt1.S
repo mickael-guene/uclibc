@@ -98,6 +98,7 @@ ARM register quick reference:
 #include <bits/arm_asm.h>
 
 .text
+	.arm
 	.globl	_start
 
 _start:

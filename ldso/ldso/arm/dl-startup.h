@@ -10,8 +10,9 @@
 #include <bits/arm_asm.h>
 
 #if defined(__FDPIC__)
-#if !defined(__thumb__)
+#if !defined(__thumb__) || defined(__thumb2__)
 __asm__(
+	    "  .arm\n"
 	    "  .text\n"
 	    "  .globl  _start\n"
 	    "  .type   _start,%function\n"

@@ -3,8 +3,10 @@
 #define _ARM_ASM_H
 
 #ifdef __thumb2__
+#if defined(__ASSEMBLER__)
 .thumb
 .syntax unified
+#endif
 #define IT(t, cond) i##t cond
 #else
 /* XXX: This can be removed if/when we require an assembler that supports
