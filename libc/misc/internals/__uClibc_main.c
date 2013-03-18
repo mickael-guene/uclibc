@@ -40,6 +40,23 @@
 #include <pthread.h>
 #endif 
 
+#if !defined(SHARED) && defined(__FDPIC__)
+struct funcdesc_value
+{
+  void *entry_point;
+  void *got_value;
+} __attribute__((__aligned__(8)));
+
+static void fdpic_init_array_jump(void *addr)
+{
+    struct funcdesc_value *fm = (struct funcdesc_value *) fdpic_init_array_jump;
+    struct funcdesc_value fd = {addr, fm->got_value};
+    void (*pf)(void) = (void*) &fd;
+
+    (*pf)();
+}
+#endif
+
 #ifndef SHARED
 void *__libc_stack_end = NULL;
 
@@ -296,7 +313,11 @@ void __uClibc_fini(void)
 # elif !defined (__UCLIBC_FORMAT_SHARED_FLAT__)
     size_t i = __fini_array_end - __fini_array_start;
     while (i-- > 0)
+#if !defined(SHARED) && defined(__FDPIC__)
+        fdpic_init_array_jump(__fini_array_start[i]);
+#else
 	(*__fini_array_start [i]) ();
+#endif
 # endif
     if (__app_fini != NULL)
 	(__app_fini)();
@@ -432,7 +453,11 @@ void __uClibc_main(int (*main)(int, char **, char **), int argc,
 	const size_t size = __preinit_array_end - __preinit_array_start;
 	size_t i;
 	for (i = 0; i < size; i++)
+#if !defined(SHARED) && defined(__FDPIC__)
+        fdpic_init_array_jump(__preinit_array_start[i]);
+#else
 	    (*__preinit_array_start [i]) ();
+#endif
     }
 # endif
     /* Run all the application's ctors now.  */
@@ -448,7 +473,11 @@ void __uClibc_main(int (*main)(int, char **, char **), int argc,
 	const size_t size = __init_array_end - __init_array_start;
 	size_t i;
 	for (i = 0; i < size; i++)
+#if !defined(SHARED) && defined(__FDPIC__)
+        fdpic_init_array_jump(__init_array_start[i]);
+#else
 	    (*__init_array_start [i]) ();
+#endif
     }
 # endif
 #endif
