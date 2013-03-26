@@ -301,11 +301,10 @@ _dl_do_reloc (struct elf_resolve *tpnt,struct r_scope_elem *scope,
 					struct funcdesc_value funcval;
 					struct funcdesc_value *dst = (struct funcdesc_value *) reloc_addr;
 
-					if (symbol_addr)
-						funcval.entry_point = (void*)symbol_addr;
-					else
-						funcval.entry_point = DL_RELOC_ADDR(tpnt->loadaddr, *reloc_addr); /* local or weak undefined */
-
+					funcval.entry_point = (void*)symbol_addr;
+					/* add offset to section address for local symbols */
+					if (ELF_ST_BIND(symtab[symtab_index].st_info) == STB_LOCAL)
+						funcval.entry_point += *reloc_addr;
 					funcval.got_value = def_mod->loadaddr.got_value;
 					*dst = funcval;
 				}
