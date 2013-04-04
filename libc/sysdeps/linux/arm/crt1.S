@@ -124,11 +124,13 @@ _start:
 	add r2, sp, #20 //char argv
 	ldr r3, .L_init_got_funcdesc //r3 got init
 	ldr r3, [r9, r3]
-	ldr r4, .L_fini_got_funcdesc //sp + 0 got fini
+	ldr r4, .L_fini_got_funcdesc
 	ldr r4, [r9, r4]
-	str r4, [sp, #0]
-	mov r4, r10 //sp + 4 got rtld_fini
-	str r4, [sp, #4]
+	str r4, [sp, #0] //sp + 0 got fini
+	movs r4, r8 // test for a static binary
+	movne r4, r10
+	moveq r4, #0
+	str r4, [sp, #4] //sp + 4 got rtld_fini
 	mov r4, r2 // TODO : not clear for me what stack_end should be ...
 	str r4, [sp, #8] //sp + 8 got stack_end
 	bl __uClibc_main
