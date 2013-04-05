@@ -47,11 +47,15 @@ struct funcdesc_value
   void *got_value;
 } __attribute__((__aligned__(8)));
 
+#define _dl_stabilize_funcdesc(val) \
+  ({ __asm__ ("" : "+m" (*(val))); (val); })
+
 static void fdpic_init_array_jump(void *addr)
 {
     struct funcdesc_value *fm = (struct funcdesc_value *) fdpic_init_array_jump;
     struct funcdesc_value fd = {addr, fm->got_value};
-    void (*pf)(void) = (void*) &fd;
+
+    void (*pf)(void) = (void*) _dl_stabilize_funcdesc(&fd);
 
     (*pf)();
 }
