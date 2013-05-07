@@ -82,7 +82,7 @@ unsigned long _dl_linux_resolver(struct elf_resolve * tpnt, int reloc_entry);
    of the main executable's symbols, as for a COPY reloc.  */
 #define elf_machine_type_class(type)									\
   ((((type) == R_ARM_JUMP_SLOT || (type) == R_ARM_TLS_DTPMOD32			\
-		 || (type) == R_ARM_FUNCDESC_VALUE || (type) == R_ARM_FUNCDESC      \
+		 || (type) == R_ARM_FUNCDESC_VALUE || (type) == R_ARM_FUNCDESC || (type) == R_ARM_ABS32      \
      || (type) == R_ARM_TLS_DTPOFF32 || (type) == R_ARM_TLS_TPOFF32)	\
     * ELF_RTYPE_CLASS_PLT)												\
    | (((type) == R_ARM_COPY) * ELF_RTYPE_CLASS_COPY))
