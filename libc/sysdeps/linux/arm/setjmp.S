@@ -42,7 +42,6 @@ __sigsetjmp:
 	pop	{r3, r4, r5, r6, r7, pc}
 
 #else
-.arm
 __sigsetjmp:
 	/* Save registers */
 	mov	ip, r0

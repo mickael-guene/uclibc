@@ -98,12 +98,16 @@ ARM register quick reference:
 #include <bits/arm_asm.h>
 
 .text
-	.arm
 	.globl	_start
 
 _start:
+	.align 2
 # start by self relocation
+#if defined(__thumb2__)
+	sub r4, pc, #4
+#else
 	sub r4, pc, #8
+#endif
 	ldr r1, .L__ROFIXUP_LIST__
 	add r1, r1, r4
 	ldr r2, .L__ROFIXUP_END__
@@ -128,6 +132,7 @@ _start:
 	ldr r4, [r9, r4]
 	str r4, [sp, #0] //sp + 0 got fini
 	movs r4, r8 // test for a static binary
+	ite ne
 	movne r4, r10
 	moveq r4, #0
 	str r4, [sp, #4] //sp + 4 got rtld_fini
