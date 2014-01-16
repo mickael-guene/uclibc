@@ -49,6 +49,7 @@ setjmp:
 .pool
 #endif
 #else
+.arm
 setjmp:
 	mov	r1, #1
 #ifdef __PIC__

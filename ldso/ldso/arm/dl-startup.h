@@ -12,10 +12,10 @@
 #if defined(__FDPIC__)
 #if !defined(__thumb__) || defined(__thumb2__)
 __asm__(
+	    "  .arm\n"
 	    "  .text\n"
 	    "  .globl  _start\n"
 	    "  .type   _start,%function\n"
-	    "  .align 2\n"
 		"_start:\n"
 /* we compute parameter for __self_reloc :
 - p0 is a pointer to the loadmap (either from r8 or r7 if dl is lauch in standalone mode)
@@ -24,17 +24,12 @@ __asm__(
 __self_reloc will fix indirect address in .rofixup section and will return relocated
 got value
 */
-#if defined(__thumb2__)
-		"  sub r4, pc, #4\n"
-#else
 		"  sub r4, pc, #8\n"
-#endif
 		"  ldr r1, .L__ROFIXUP_LIST__\n"
 		"  add r1, r1, r4\n"
 		"  ldr r2, .L__ROFIXUP_END__\n"
 		"  add r2, r2, r4\n"
 		"  movs r0, r8\n"
-		"  it eq\n"
 		"  moveq r0, r7\n"
 		"  push {r7, r8, r9, r10}\n"
 	    "  bl      __self_reloc;\n"

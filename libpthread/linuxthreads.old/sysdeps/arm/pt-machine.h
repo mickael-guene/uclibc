@@ -38,15 +38,6 @@ PT_EI long int testandset (int *spinlock)
 {
   register unsigned int ret;
 
-#if defined(__thumb2__)
-  __asm__ __volatile__(
-                "\tldrex %[ret], [%[spinlock]]\n"
-                "\tcmp %[ret], #0\n"
-                "\tit eq\n"
-                "\tstrexeq %[ret], %[one], [%[spinlock]]\n"
-                : [ret] "=r"(ret)
-                : [spinlock] "r"(spinlock), [one] "0" (1));
-#else
 #if defined(__thumb__)
   void *pc;
   __asm__ __volatile__(
@@ -64,7 +55,6 @@ PT_EI long int testandset (int *spinlock)
   __asm__ __volatile__("swp %0, %1, [%2]"
 		       : "=r"(ret)
 		       : "0"(1), "r"(spinlock));
-#endif
 #endif
 
   return ret;
