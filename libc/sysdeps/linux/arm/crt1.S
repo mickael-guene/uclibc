@@ -99,6 +99,7 @@ ARM register quick reference:
 
 .text
 	.globl	_start
+	.type	_start,%function
 
 _start:
 	.align 2
