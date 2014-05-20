@@ -22,6 +22,7 @@
 #include <sysdep.h>
 #include <tls.h>
 
+#ifndef __FDPIC__
 
 #define ARCH_FORK()							\
   INLINE_SYSCALL (clone, 5,						\
@@ -29,3 +30,35 @@
 		  NULL, NULL, NULL, &THREAD_SELF->tid)
 
 #include "../fork.c"
+
+#else
+
+#include <assert.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <unistd.h>
+#include <sys/types.h>
+#include <sysdep.h>
+#include <tls.h>
+#include "fork.h"
+#include <hp-timing.h>
+#include <ldsodefs.h>
+#include <atomic.h>
+#include <errno.h>
+
+unsigned long int *__fork_generation_pointer;
+
+/* The single linked list of all currently registered for handlers.  */
+struct fork_handler *__fork_handlers;
+
+//extern __typeof(fork) __libc_fork;
+pid_t
+__libc_fork (void)
+{
+  return -1;
+}
+weak_alias(__libc_fork,__fork)
+//libc_hidden_proto(fork)
+//weak_alias(__libc_fork,fork)
+//libc_hidden_weak(fork)
+#endif
