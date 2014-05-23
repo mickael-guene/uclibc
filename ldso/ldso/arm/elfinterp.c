@@ -255,6 +255,7 @@ _dl_do_reloc (struct elf_resolve *tpnt,struct r_scope_elem *scope,
 	struct symbol_ref sym_ref;
 	struct elf_resolve *def_mod = 0;
 	int goof = 0;
+    int st_value = 0;
 
 	reloc_addr   = (unsigned long *) DL_RELOC_ADDR(tpnt->loadaddr, rpnt->r_offset);
 
@@ -266,6 +267,7 @@ _dl_do_reloc (struct elf_resolve *tpnt,struct r_scope_elem *scope,
 	symname = strtab + symtab[symtab_index].st_name;
 
 	if (symtab_index) {
+        st_value = symtab[symtab_index].st_value;
 		if (ELF_ST_BIND (symtab[symtab_index].st_info) == STB_LOCAL) {
 			symbol_addr = (unsigned long) DL_RELOC_ADDR(tpnt->loadaddr, symtab[symtab_index].st_value);
 			def_mod = tpnt;
@@ -387,12 +389,14 @@ _dl_do_reloc (struct elf_resolve *tpnt,struct r_scope_elem *scope,
 				break;
 
 			case R_ARM_TLS_DTPOFF32:
-				*reloc_addr += symbol_addr;
+				//*reloc_addr += symbol_addr;
+                *reloc_addr += st_value;
 				break;
 
 			case R_ARM_TLS_TPOFF32:
 				CHECK_STATIC_TLS ((struct link_map *) def_mod);
-				*reloc_addr += (symbol_addr + def_mod->l_tls_offset);
+				//*reloc_addr += (symbol_addr + def_mod->l_tls_offset);
+                *reloc_addr += (st_value + def_mod->l_tls_offset);
 				break;
 #endif
 			default:

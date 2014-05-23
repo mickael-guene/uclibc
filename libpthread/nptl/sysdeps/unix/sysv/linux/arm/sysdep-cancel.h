@@ -212,10 +212,10 @@ extern int __local_multiple_threads attribute_hidden;
 #   define SINGLE_THREAD_P						\
   ldr ip, 1b;								\
 2:									\
-  ldr ip, [pc, ip];							\
+  ldr ip, [r9, ip];							\
   teq ip, #0;
 #   define PSEUDO_PROLOGUE						\
-  1:  .word __local_multiple_threads - 2f - 8;
+  1:  .word __local_multiple_threads(GOTOFF);
 #  endif
 # else
 /*  There is no __local_multiple_threads for librt, so use the TCB.  */
