@@ -528,7 +528,7 @@ void *_dl_get_ready_to_run(struct elf_resolve *tpnt, DL_LOADADDR_TYPE load_addr,
 
 #if defined(USE_TLS) && USE_TLS
     //FIXME : to allow boot, this remove FUNCDESC reloc : to be check later / use _dl_find_hash() ?
-	_dl_error_catch_tsd = NULL;//&_dl_initial_error_catch_tsd;
+	_dl_error_catch_tsd = &_dl_initial_error_catch_tsd;
 	_dl_init_static_tls = &_dl_nothread_init_static_tls;
 #endif
 
