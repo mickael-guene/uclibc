@@ -42,10 +42,14 @@ __libc_pthread_init (
      const struct pthread_functions *functions)
 {
   /* Remember the pointer to the generation counter in libpthread.  */
+#ifdef __ARCH_USE_MMU__
   __fork_generation_pointer = ptr;
+#endif
 
   /* Called by a child after fork.  */
+#ifdef __ARCH_USE_MMU__
   __register_atfork (NULL, NULL, reclaim, NULL);
+#endif
 
 #ifdef SHARED
   /* We copy the content of the variable pointed to by the FUNCTIONS

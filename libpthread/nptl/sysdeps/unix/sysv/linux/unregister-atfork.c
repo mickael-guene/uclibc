@@ -23,7 +23,7 @@
 #include <atomic.h>
 #include <tls.h>
 
-
+#ifdef __ARCH_USE_MMU__
 void
 __unregister_atfork (
      void *dso_handle)
@@ -121,3 +121,11 @@ __unregister_atfork (
       deleted = deleted->next;
     }
 }
+#else
+void
+__unregister_atfork (
+     void *dso_handle)
+{
+    /* nothing to do */
+}
+#endif

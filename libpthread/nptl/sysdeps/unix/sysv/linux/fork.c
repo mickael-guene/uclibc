@@ -30,6 +30,7 @@
 #include <atomic.h>
 #include <errno.h>
 
+#ifdef __ARCH_USE_MMU__
 unsigned long int *__fork_generation_pointer;
 
 
@@ -227,3 +228,4 @@ weak_alias(__libc_fork,__fork)
 libc_hidden_proto(fork)
 weak_alias(__libc_fork,fork)
 libc_hidden_weak(fork)
+#endif

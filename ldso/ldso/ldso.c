@@ -527,7 +527,6 @@ void *_dl_get_ready_to_run(struct elf_resolve *tpnt, DL_LOADADDR_TYPE load_addr,
 	}
 
 #if defined(USE_TLS) && USE_TLS
-    //FIXME : to allow boot, this remove FUNCDESC reloc : to be check later / use _dl_find_hash() ?
 	_dl_error_catch_tsd = &_dl_initial_error_catch_tsd;
 	_dl_init_static_tls = &_dl_nothread_init_static_tls;
 #endif
@@ -755,7 +754,7 @@ of this helper program; chances are you did not intend to run this program.\n\
 	 */
 	if (app_tpnt->l_tls_initimage != NULL) {
 		unsigned int tmp = (unsigned int) app_tpnt->l_tls_initimage;
-        app_tpnt->l_tls_initimage = (char *) DL_RELOC_ADDR(app_tpnt->loadaddr, app_tpnt->l_tls_initimage);
+		app_tpnt->l_tls_initimage = (char *) DL_RELOC_ADDR(app_tpnt->loadaddr, app_tpnt->l_tls_initimage);
 		_dl_debug_early("Relocated TLS initial image from %x to %x (size = %x)\n",
 			tmp, app_tpnt->l_tls_initimage, app_tpnt->l_tls_initimage_size);
 	}
