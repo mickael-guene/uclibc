@@ -37,6 +37,11 @@
 extern ElfW(Phdr) *_dl_phdr;
 extern size_t _dl_phnum;
 
+#ifdef __FDPIC__
+/* phdr->p_vaddr is not valid in fdpic mode. To find tdata start we use linker script define
+   symbol __tdata_start */
+extern int __tdata_start;
+#endif
 
 static dtv_t static_dtv[2 + TLS_SLOTINFO_SURPLUS];
 
@@ -131,7 +136,11 @@ __libc_setup_tls (size_t tcbsize, size_t tcbalign)
 	  /* Remember the values we need.  */
 	  memsz = phdr->p_memsz;
 	  filesz = phdr->p_filesz;
+#ifdef __FDPIC__
+	  initimage = (void *) &__tdata_start;
+#else
 	  initimage = (void *) phdr->p_vaddr;
+#endif
 	  align = phdr->p_align;
 	  if (phdr->p_align > max_align)
 	    max_align = phdr->p_align;
