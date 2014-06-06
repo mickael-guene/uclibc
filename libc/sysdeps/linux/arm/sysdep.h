@@ -53,6 +53,7 @@
 	ldm##cond	base,reglist
 #ifdef __USE_BX__
 #define RETINSTR(cond, reg)	\
+	it cond;                \
 	bx##cond	reg
 #define DO_RET(_reg)		\
 	bx _reg

@@ -55,8 +55,12 @@
 	.hidden __aeabi_read_tp
 #endif
 ENTRY (__aeabi_read_tp)
+#ifdef __FDPIC__
+    mrc	p15, 0, r0, c13, c0, 3
+#else
 	mov	r0, #0xffff0fff
 	sub	pc, r0, #31
+#endif
 END (__aeabi_read_tp)
 
 #endif /* __UCLIBC_HAS_THREADS_NATIVE__ */

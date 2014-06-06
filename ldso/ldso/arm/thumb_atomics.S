@@ -35,6 +35,8 @@
 
 #include <features.h>
 
+/* This code seems useless and don't compile in thumb 2 */
+#ifndef __FDPIC__
 #ifdef __UCLIBC_HAS_THREADS_NATIVE__
 
 #include <sysdep.h>
@@ -76,4 +78,4 @@ END (__thumb_cmpxchg)
 
 #endif /* __thumb__ */
 #endif /* __UCLIBC_HAS_THREADS_NATIVE__ */
-
+#endif /* __FDPIC__ */

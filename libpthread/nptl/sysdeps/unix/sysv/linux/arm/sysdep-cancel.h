@@ -221,7 +221,8 @@ extern int __local_multiple_threads attribute_hidden;
 #    define SINGLE_THREAD_P						\
   ldr ip, 1b;								\
 2:									\
-  ldr ip, [pc, ip];							\
+  add ip, ip, pc;							\
+  ldr ip, [ip]; \
   teq ip, #0;
 #    define PSEUDO_PROLOGUE						\
   1:  .word __local_multiple_threads - 2f - 8;
@@ -240,7 +241,8 @@ extern int __local_multiple_threads attribute_hidden;
   cfi_adjust_cfa_offset (8);						\
   cfi_rel_offset (lr, 4);						\
   bl	__aeabi_read_tp;						\
-  ldr	ip, [r0, #MULTIPLE_THREADS_OFFSET];				\
+  add r0, r0, #MULTIPLE_THREADS_OFFSET;				\
+  ldr	ip, [r0];				\
   ldmfd	sp!, {r0, lr};							\
   cfi_adjust_cfa_offset (-8);						\
   cfi_restore (lr);							\
