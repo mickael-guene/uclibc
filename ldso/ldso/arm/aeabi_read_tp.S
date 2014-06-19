@@ -57,6 +57,7 @@
 ENTRY (__aeabi_read_tp)
 #ifdef __FDPIC__
     mrc	p15, 0, r0, c13, c0, 3
+    bx lr
 #else
 	mov	r0, #0xffff0fff
 	sub	pc, r0, #31
