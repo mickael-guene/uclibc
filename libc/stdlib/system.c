@@ -23,9 +23,7 @@ extern __typeof(system) __libc_system;
 /* TODO: the cancellable version breaks on sparc currently,
  * need to figure out why still
  */
-/* FIXME : temporary use non UCLIBC_HAS_THREADS_NATIVE untill I fix problems */
-#if 1
-//#if !defined __UCLIBC_HAS_THREADS_NATIVE__ || defined __sparc__
+#if !defined __UCLIBC_HAS_THREADS_NATIVE__ || defined __sparc__
 /* uClinux-2.0 has vfork, but Linux 2.0 doesn't */
 #include <sys/syscall.h>
 #ifndef __NR_vfork
@@ -90,6 +88,7 @@ out:
 libc_hidden_proto(sigaction)
 libc_hidden_proto(waitpid)
 
+#ifdef __ARCH_USE_MMU__
 #if defined __ia64__
 # define FORK() \
   INLINE_SYSCALL (clone2, 6, CLONE_PARENT_SETTID | SIGCHLD, NULL, 0, \
@@ -103,6 +102,10 @@ libc_hidden_proto(waitpid)
 #else
 # define FORK() \
   INLINE_SYSCALL (clone, 3, CLONE_PARENT_SETTID | SIGCHLD, 0, &pid)
+#endif
+#else
+# define FORK() \
+    vfork
 #endif
 
 static void cancel_handler (void *arg);
