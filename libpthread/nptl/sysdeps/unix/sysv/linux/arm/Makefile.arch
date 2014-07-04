@@ -8,13 +8,14 @@
 libpthread_linux_arch_SSRC = pt-vfork.S
 libpthread_linux_arch_CSRC = pthread_once.c \
 	pt-__syscall_rt_sigaction.c pt-__syscall_error.c \
-	lowlevellock.c
+	lowlevellock.c unwind-forcedunwind.c
 
 libc_linux_arch_CSRC = fork.c libc-lowlevellock.c
 libc_linux_arch_SSRC = clone.S vfork.S
 libc_linux_arch_SSRC-OMIT = waitpid.S
 
 
+CFLAGS-unwind-forcedunwind.c = -DNOT_IN_libc -DIS_IN_libpthread
 CFLAGS-pthread_once.c = -DNOT_IN_libc -DIS_IN_libpthread
 CFLAGS-pt-__syscall_rt_sigaction.c = -DNOT_IN_libc -DIS_IN_libpthread
 CFLAGS-lowlevellock.c = -DNOT_IN_libc -DIS_IN_libpthread

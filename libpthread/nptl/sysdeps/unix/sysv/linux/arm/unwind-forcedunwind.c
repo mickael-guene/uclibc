@@ -86,21 +86,53 @@ __unwind_freeres (void)
     }
 }
 
-#ifdef __thumb__
-void
-_Unwind_Resume (struct _Unwind_Exception *exc)
-{
-  if (__builtin_expect (libgcc_s_resume == NULL, 0))
-    pthread_cancel_init ();
-
-  libgcc_s_resume (exc);
-}
+#if defined(__thumb__) && !defined(__thumb2__)
+#error "Need to implement assembly for thumb code"
 
 #else
 /* It's vitally important that _Unwind_Resume not have a stack frame; the
    ARM unwinder relies on register state at entrance.  So we write this in
    assembly.  */
+#if defined(__FDPIC__)
+__asm__ (
+"	.globl	_Unwind_Resume\n"
+"	.type	_Unwind_Resume, %function\n"
+"_Unwind_Resume:\n"
+"	.cfi_sections .debug_frame\n"
+"	" CFI_STARTPROC "\n"
+"	stmfd	sp!, {r4, r5, r6, lr}\n"
+"	" CFI_ADJUST_CFA_OFFSET (16)" \n"
+"	" CFI_REL_OFFSET (r4, 0) "\n"
+"	" CFI_REL_OFFSET (r5, 4) "\n"
+"	" CFI_REL_OFFSET (r6, 8) "\n"
+"	" CFI_REL_OFFSET (lr, 12) "\n"
+"	" CFI_REMEMBER_STATE "\n"
+"	ldr	r4, 2f\n"
+"	ldr	r3, [r9, r4]\n"
+"	mov	r6, r0\n"
+"	cmp	r3, #0\n"
+"	beq	4f\n"
+"5:	mov	r0, r6\n"
+"	ldmfd	sp!, {r4, r5, r6, lr}\n"
+"	" CFI_ADJUST_CFA_OFFSET (-16) "\n"
+"	" CFI_RESTORE (r4) "\n"
+"	" CFI_RESTORE (r5) "\n"
+"	" CFI_RESTORE (r6) "\n"
+"	" CFI_RESTORE (lr) "\n"
+"	ldr	r9, [r3, #4]\n"
+"	ldr	r3, [r3, #0]\n"
+"	bx	r3\n"
+"	" CFI_RESTORE_STATE "\n"
+"4:	bl	pthread_cancel_init\n"
+"	ldr	r3, [r9, r4]\n"
+"	b	5b\n"
+"	" CFI_ENDPROC "\n"
+"	.align 2\n"
+"2:	.word	libgcc_s_resume(GOTOFF)\n"
+"	.size	_Unwind_Resume, .-_Unwind_Resume\n"
+);
 
+#else /*defined(__FDPIC__)*/
 __asm__ (
 "	.globl	_Unwind_Resume\n"
 "	.type	_Unwind_Resume, %function\n"
@@ -143,6 +175,7 @@ __asm__ (
 "2:	.word	libgcc_s_resume(GOTOFF)\n"
 "	.size	_Unwind_Resume, .-_Unwind_Resume\n"
 );
+#endif/*defined(__FDPIC__)*/
 
 #endif
 

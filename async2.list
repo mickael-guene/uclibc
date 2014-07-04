@@ -1,0 +1,3 @@
+pthread_create.c:	  int oldtype = CANCEL_ASYNC ();
+pthread_join.c:  int oldtype = CANCEL_ASYNC ();
+pthread_timedjoin.c:  int oldtype = CANCEL_ASYNC ();

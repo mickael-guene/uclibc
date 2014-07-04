@@ -158,7 +158,7 @@ CFLAGS-nptl = -DNOT_IN_libc -DIS_IN_libpthread $(SSP_ALL_CFLAGS)
 CFLAGS-init.c = -fexceptions -fasynchronous-unwind-tables
 # The unwind code itself,
 CFLAGS-unwind.c = -fexceptions
-CFLAGS-unwind-forcedunwind.c = -fexceptions -fasynchronous-unwind-tables
+CFLAGS-unwind-forcedunwind.c = -fexceptions -fasynchronous-unwind-tables -DNOT_IN_libc -DIS_IN_libpthread
 
 # The following three functions must be async-cancel safe.
 CFLAGS-pthread_cancel.c = -fexceptions -fasynchronous-unwind-tables
@@ -207,6 +207,10 @@ CFLAGS-msgsnd.c = -fexceptions -fasynchronous-unwind-tables
 CFLAGS-tcdrain.c = -fexceptions -fasynchronous-unwind-tables
 
 CFLAGS-pt-system.c = -fexceptions -I$(top_srcdir)libc/stdlib
+
+# Missing
+CFLAGS-nanosleep.c = -fexceptions -fasynchronous-unwind-tables
+CFLAGS-pt-sleep.c = -fexceptions
 
 #
 # The rest of this file is uClibc specific.
