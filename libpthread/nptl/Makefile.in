@@ -208,10 +208,6 @@ CFLAGS-tcdrain.c = -fexceptions -fasynchronous-unwind-tables
 
 CFLAGS-pt-system.c = -fexceptions -I$(top_srcdir)libc/stdlib
 
-# Missing
-CFLAGS-nanosleep.c = -fexceptions -fasynchronous-unwind-tables
-CFLAGS-pt-sleep.c = -fexceptions
-
 #
 # The rest of this file is uClibc specific.
 #
