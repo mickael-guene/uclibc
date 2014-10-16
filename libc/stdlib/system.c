@@ -105,7 +105,7 @@ libc_hidden_proto(waitpid)
 #endif
 #else
 # define FORK() \
-    vfork
+    vfork()
 #endif
 
 static void cancel_handler (void *arg);
