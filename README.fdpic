@@ -1,11 +1,13 @@
- This README explain how to recompile uclibc for fdpic using an fdpic toolchain.
+This README file explains how to recompile uclibc for fdpic using an
+fdpic toolchain.
 
-prerequisite :
- - Having an fdpic toolchain installed
- - Update your path so it include arm-v7-linux-uclibceabi-gcc binary provide by fdpic toolchain
- - Have access to kernel tree for your target
+Prerequisites :
+ - Have an fdpic toolchain installed
+ - Update your path so that it includes arm-v7-linux-uclibceabi-gcc
+   binary provided by the fdpic toolchain
+ - Have access to the kernel tree for your target
 
-1) prepare directory structure
+1) Prepare the directory structure
  a) define WORK environment variable to your working directory
 $ export WORK=/tmp/uclibc
  b) create directory structure
@@ -14,15 +16,19 @@ $ mkdir -p ${WORK}/kernel_headers
 $ mkdir -p ${WORK}/uclibc
 $ mkdir -p ${WORK}/uclibc_install
 
-2) kernel headers
+2) Prepare the kernel headers
  a) install your kernel source tree in ${WORK}/kernel
- b) install kernel headers inside ${WORK}/kernel_headers
+ According to your source delivery medium, either copy unzip or git clone your
+source code here
+ b) install your kernel headers inside ${WORK}/kernel_headers
 $ cd ${WORK}/kernel
 $ make headers_install ARCH=arm INSTALL_HDR_PATH=${WORK}/kernel_headers CROSS_COMPILE=arm-v7-linux-uclibceabi-
 
-3) uclibc
- a) install fdpic uclibc source tree in ${WORK}/uclibc
- b) configure uclibc
+3) Build and install uclibc
+ a) install the fdpic uclibc source tree in ${WORK}/uclibc
+ According to your source delivery medium, either copy unzip or git clone your
+source code here
+ b) configure uclibc as follows:
 $ cd ${WORK}/uclibc
 $ cp config_template .config
 $ sed -i "s;__KERNEL_HEADERS__;${WORK}/kernel_headers/include;g" .config
