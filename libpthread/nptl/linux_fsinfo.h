@@ -127,12 +127,10 @@
 #define XENIX_SUPER_MAGIC	0x012ff7b4
 
 /* Constant that identifies the `shm' filesystem.  */
-#ifdef __ARCH_USE_MMU__
-#define SHMFS_SUPER_MAGIC	0x01021994
-#else
-/* kernel use a ramfs file system for tmpfs */
-#define SHMFS_SUPER_MAGIC	0x858458f6
-#endif
+ /* mount as tmpfs */
+#define SHMFS_SUPER_MAGIC_WITH_MMU      0x01021994
+ /* kernel use a ramfs file system for tmpfs */
+#define SHMFS_SUPER_MAGIC_WITHOUT_MMU   0x858458f6
 
 /* Constants that identify the `xfs' filesystem.  */
 #define XFS_SUPER_MAGIC		0x58465342
