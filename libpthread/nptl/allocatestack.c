@@ -325,8 +325,10 @@ change_stack_perm (struct pthread *pd
 #else
 # error "Define either _STACK_GROWS_DOWN or _STACK_GROWS_UP"
 #endif
+#ifdef __ARCH_USE_MMU__
   if (mprotect (stack, len, PROT_READ | PROT_WRITE | PROT_EXEC) != 0)
     return errno;
+#endif
 
   return 0;
 }
@@ -596,6 +598,7 @@ allocate_stack (const struct pthread_attr *attr, struct pthread **pdp,
 #elif defined _STACK_GROWS_UP
 	  char *guard = (char *) (((uintptr_t) pd - guardsize) & ~pagesize_m1);
 #endif
+#ifdef __ARCH_USE_MMU__
 	  if (mprotect (guard, guardsize, PROT_NONE) != 0)
 	    {
 	      int err;
@@ -621,6 +624,7 @@ allocate_stack (const struct pthread_attr *attr, struct pthread **pdp,
 
 	      return err;
 	    }
+#endif
 
 	  pd->guardsize = guardsize;
 	}
@@ -633,6 +637,7 @@ allocate_stack (const struct pthread_attr *attr, struct pthread **pdp,
 	  char *guard = mem + (((size - guardsize) / 2) & ~pagesize_m1);
 	  char *oldguard = mem + (((size - pd->guardsize) / 2) & ~pagesize_m1);
 
+#ifdef __ARCH_USE_MMU__
 	  if (oldguard < guard
 	      && mprotect (oldguard, guard - oldguard, prot) != 0)
 	    goto mprot_error;
@@ -649,6 +654,7 @@ allocate_stack (const struct pthread_attr *attr, struct pthread **pdp,
 	  if (mprotect ((char *) pd - pd->guardsize,
 			pd->guardsize - guardsize, prot) != 0)
 	    goto mprot_error;
+#endif
 #endif
 
 	  pd->guardsize = guardsize;

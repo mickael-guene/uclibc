@@ -754,8 +754,7 @@ of this helper program; chances are you did not intend to run this program.\n\
 	 */
 	if (app_tpnt->l_tls_initimage != NULL) {
 		unsigned int tmp = (unsigned int) app_tpnt->l_tls_initimage;
-		app_tpnt->l_tls_initimage =
-			(char *) app_tpnt->l_tls_initimage + app_tpnt->loadaddr;
+		app_tpnt->l_tls_initimage = (char *) DL_RELOC_ADDR(app_tpnt->loadaddr, app_tpnt->l_tls_initimage);
 		_dl_debug_early("Relocated TLS initial image from %x to %x (size = %x)\n",
 			tmp, app_tpnt->l_tls_initimage, app_tpnt->l_tls_initimage_size);
 	}

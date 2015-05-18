@@ -22,10 +22,24 @@
 	.align	4
 
 ENTRY (pthread_spin_lock)
+#if 0
 	mov	r1, #1
 1:	swp	r2, r1, [r0]
 	teq	r2, #0
 	bne	1b
 	mov	r0, #0
 	PSEUDO_RET_NOERRNO
+#else
+// v6 and later ony
+    mov r2, #1              // lock value is 1
+1:  ldrex r1, [r0]          // read lock value
+    teq r1, #0              // test if lock taken
+    itt eq
+    strexeq r1, r2, [r0]    // try to get lock in case lock not yet taken
+    teqeq r1, #0            // test if we get lock successfully
+    it ne
+    bne 1b
+    mov	r0, #0
+	PSEUDO_RET_NOERRNO
+#endif
 END (pthread_spin_lock)

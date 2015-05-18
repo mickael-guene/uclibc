@@ -19,6 +19,7 @@
 
 #include <unistd.h>
 
+#ifdef __ARCH_USE_MMU__
 extern int __libc_fork (void);
 
 pid_t
@@ -27,3 +28,5 @@ __fork (void)
   return __libc_fork ();
 }
 strong_alias (__fork, fork)
+#endif
+

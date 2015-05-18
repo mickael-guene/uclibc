@@ -111,7 +111,7 @@ __clone:
 	ldr	r4, [sp, #12]
 	DO_CALL (clone)
 	movs	a1, a1
-	blt	__error
+	blt	__error2
 	IT(t, ne)
 	ldmnefd	sp!, {r4}
 	IT(t, ne)
@@ -142,6 +142,9 @@ __clone:
 	b	HIDDEN_JUMPTARGET(_exit)
 
 __error:
+	b	__syscall_error
+__error2:
+    ldmfd sp!, {r4}
 	b	__syscall_error
 #endif
 

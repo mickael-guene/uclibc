@@ -14,11 +14,10 @@ include $(libpthread_DIR)/sysdeps/Makefile.in
 
 libc-shared-routines-y = forward.c libc-cancellation.c
 libc-static-routines-y = alloca_cutoff.c libc-cancellation.c
-libpthread-shared-only-routines-y = version.c
+libpthread-shared-only-routines-y = version.c sysdeps/unix/sysv/linux/arm/unwind-forcedunwind.c
 libpthread-static-only-routines-y = pthread_atfork.c
 libpthread-routines- += $(notdir $(wildcard $(libpthread_DIR)/gen_*.c)) # dummy generated files
 libpthread-routines- += allocatestack.c # dummy included by pthread_create.c
-libpthread-routines- += pthread_mutex_getprioceiling.c pthread_mutex_setprioceiling.c # XXX: delete those or use them!
 libpthread-routines-$(UCLIBC_HAS_RESOLVER_SUPPORT) += res.c
 libpthread-routines-$(UCLIBC_SUSV4_LEGACY) += pthread_getconcurrency.c \
 	pthread_setconcurrency
@@ -159,7 +158,7 @@ CFLAGS-nptl = -DNOT_IN_libc -DIS_IN_libpthread $(SSP_ALL_CFLAGS)
 CFLAGS-init.c = -fexceptions -fasynchronous-unwind-tables
 # The unwind code itself,
 CFLAGS-unwind.c = -fexceptions
-CFLAGS-unwind-forcedunwind.c = -fexceptions -fasynchronous-unwind-tables
+CFLAGS-unwind-forcedunwind.c = -fexceptions -fasynchronous-unwind-tables -DNOT_IN_libc -DIS_IN_libpthread
 
 # The following three functions must be async-cancel safe.
 CFLAGS-pthread_cancel.c = -fexceptions -fasynchronous-unwind-tables
@@ -195,7 +194,7 @@ CFLAGS-sem_timedwait.c = -fexceptions -fasynchronous-unwind-tables
 
 # These are the function wrappers we have to duplicate here.
 CFLAGS-fcntl.c = -fexceptions -fasynchronous-unwind-tables
-CFLAGS-lockf.c = -fexceptions
+CFLAGS-lockf.c = -fasynchronous-unwind-tables
 CFLAGS-pread.c = -fexceptions -fasynchronous-unwind-tables
 CFLAGS-pread64.c = -fexceptions -fasynchronous-unwind-tables
 CFLAGS-pwrite.c = -fexceptions -fasynchronous-unwind-tables

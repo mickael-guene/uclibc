@@ -209,13 +209,24 @@
 extern int __local_multiple_threads attribute_hidden;
 #   define SINGLE_THREAD_P __builtin_expect (__local_multiple_threads == 0, 1)
 #  else
-#   define SINGLE_THREAD_P						\
+#   ifdef __FDPIC__
+#    define SINGLE_THREAD_P						\
   ldr ip, 1b;								\
 2:									\
-  ldr ip, [pc, ip];							\
+  ldr ip, [r9, ip];							\
   teq ip, #0;
-#   define PSEUDO_PROLOGUE						\
+#    define PSEUDO_PROLOGUE						\
+  1:  .word __local_multiple_threads(GOTOFF);
+#   else
+#    define SINGLE_THREAD_P						\
+  ldr ip, 1b;								\
+2:									\
+  add ip, ip, pc;							\
+  ldr ip, [ip]; \
+  teq ip, #0;
+#    define PSEUDO_PROLOGUE						\
   1:  .word __local_multiple_threads - 2f - 8;
+#   endif
 #  endif
 # else
 /*  There is no __local_multiple_threads for librt, so use the TCB.  */
@@ -230,7 +241,8 @@ extern int __local_multiple_threads attribute_hidden;
   cfi_adjust_cfa_offset (8);						\
   cfi_rel_offset (lr, 4);						\
   bl	__aeabi_read_tp;						\
-  ldr	ip, [r0, #MULTIPLE_THREADS_OFFSET];				\
+  add r0, r0, #MULTIPLE_THREADS_OFFSET;				\
+  ldr	ip, [r0];				\
   ldmfd	sp!, {r0, lr};							\
   cfi_adjust_cfa_offset (-8);						\
   cfi_restore (lr);							\
