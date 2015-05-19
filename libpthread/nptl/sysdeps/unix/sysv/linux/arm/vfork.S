@@ -18,15 +18,30 @@
 
 #include <tcb-offsets.h>
 
+#define PID_OFFSET_LSB      ((PID_OFFSET) & 0xffff)
+#define PID_OFFSET_MSB      ((PID_OFFSET >> 16) & 0xffff)
+
 /* Save the PID value.  */
 #ifdef __FDPIC__
 # define SAVE_PID \
 	mrc	p15, 0, r0, c13, c0, 3;		/* Jump to the TLS entry.  */	\
 	mov	r2, r0;			/* Save the TLS addr in r2.  */	\
+#if defined(__thumb2__) \
+    movw r1, #PID_OFFSET_LSB; \
+    movt r1, #PID_OFFSET_MSB; \
+    ldr	r3, [r2, r1];	/* Load the saved PID.  */	\
+#else \
 	ldr	r3, [r2, #PID_OFFSET];	/* Load the saved PID.  */	\
+#endif \
 	rsbs	r0, r3, #0;		/* Negate it.  */		\
 	moveq	r0, #0x80000000;	/* Use 0x80000000 if it was 0.  */ \
-    str	r0, [r2, #PID_OFFSET]	/* Store the temporary PID.  */
+#if defined(__thumb2__) \
+    movw r1, #PID_OFFSET_LSB; \
+    movt r1, #PID_OFFSET_MSB; \
+    ldr	r3, [r2, r1];	/* Load the saved PID.  */	\
+#else \
+    str	r0, [r2, #PID_OFFSET]	/* Store the temporary PID.  */ \
+#endif
 #else
 # define SAVE_PID \
 	str	lr, [sp, #-4]!;		/* Save LR.  */			\
@@ -44,6 +59,14 @@
 /* Restore the old PID value in the parent.  */
 #define RESTORE_PID \
 	cmp	r0, #0;			/* If we are the parent... */	\
-	strne	r3, [r2, #PID_OFFSET]	/* ... restore the saved PID.  */
+#if defined(__thumb2__) \
+    movw r1, #PID_OFFSET_LSB; \
+    movt r1, #PID_OFFSET_MSB; \
+    it ne; \
+    strne	r3, [r2, r1]	/* ... restore the saved PID.  */ \
+#else \
+	it ne; \
+	strne	r3, [r2, #PID_OFFSET]	/* ... restore the saved PID.  */ \
+#endif
 
 #include "../../../../../../../libc/sysdeps/linux/arm/vfork.S"
