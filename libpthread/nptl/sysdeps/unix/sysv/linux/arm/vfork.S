@@ -24,7 +24,16 @@
 /* Save the PID value.  */
 #ifdef __FDPIC__
 # define SAVE_PID \
+#if 1 \
+    push {r7} \
+    mov r7, #0x0f0000 \
+    orr r7, r7 , #6 \
+    svc #0 \
+    pop {r7} \
+    bx lr \
+#else \
 	mrc	p15, 0, r0, c13, c0, 3;		/* Jump to the TLS entry.  */	\
+#endif \
 	mov	r2, r0;			/* Save the TLS addr in r2.  */	\
 #if defined(__thumb2__) \
     movw r1, #PID_OFFSET_LSB; \

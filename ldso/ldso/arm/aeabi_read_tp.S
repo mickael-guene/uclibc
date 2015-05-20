@@ -56,8 +56,17 @@
 #endif
 ENTRY (__aeabi_read_tp)
 #ifdef __FDPIC__
+#if 1 /* cortex-m */
+    push {r7}
+    mov r7, #0x0f0000
+    orr r7, r7 , #6
+    svc #0
+    pop {r7}
+    bx lr
+#else
     mrc	p15, 0, r0, c13, c0, 3
     bx lr
+#endif
 #else
 	mov	r0, #0xffff0fff
 	sub	pc, r0, #31
