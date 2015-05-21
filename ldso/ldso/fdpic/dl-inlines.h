@@ -417,6 +417,9 @@ _dl_funcdesc_for (void *entry_point, void *got_value)
 	struct funcdesc_ht *ht = tpnt->funcdesc_ht;
 	struct funcdesc_value **entry;
 
+	if (((int)entry_point & 1) == 0)
+	    _dl_if_debug_dprint("WARNING: _dl_funcdesc_for entry_point = %x is not a thumb function\n", entry_point);
+
 	_dl_assert(got_value == tpnt->loadaddr.got_value);
 
 	if (!ht) {
