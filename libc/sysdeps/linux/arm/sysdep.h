@@ -274,23 +274,16 @@ __local_syscall_error:						\
  * unwinding (ie. thread cancellation).
  */
 #define INTERNAL_SYSCALL_RAW(name, err, nr, args...)		\
-  ({ unsigned int _internal_sys_result;				\
-    {								\
-      int _sys_buf[2];						\
+  ({								\
       register int __a1 __asm__ ("a1");				\
-      register int *_v3 __asm__ ("v3") = _sys_buf;		\
+      int _nametmp = name;					\
       LOAD_ARGS_##nr (args)					\
-      *_v3 = (int) (name);					\
-      __asm__ __volatile__ ("str	r7, [v3, #4]\n"		\
-                    "\tldr      r7, [v3]\n"			\
-                    "\tswi      0       @ syscall " #name "\n"	\
-                    "\tldr      r7, [v3, #4]"			\
-                   : "=r" (__a1)				\
-                    : "r" (_v3) ASM_ARGS_##nr			\
-                    : "memory");				\
-      _internal_sys_result = __a1;				\
-    }								\
-    (int) _internal_sys_result; })
+      register int _name __asm__ ("ip") = _nametmp;			\
+      __asm__ __volatile__ ("bl      __libc_do_syscall"			\
+                    : "=r" (__a1)				\
+                    : "r" (_name) ASM_ARGS_##nr			\
+                    : "memory", "lr");				\
+      __a1; })
 #elif defined(__ARM_EABI__)
 #define INTERNAL_SYSCALL_RAW(name, err, nr, args...)		\
   ({unsigned int _internal_sys_result;				\
