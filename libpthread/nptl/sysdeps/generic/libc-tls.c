@@ -27,7 +27,7 @@
 #include <link.h>
 #include <string.h>
 #include <stdlib.h>
-
+#include <sys/mman.h>
 
 #ifdef SHARED
  #error makefile bug, this file is for static only
@@ -156,13 +156,20 @@ __libc_setup_tls (size_t tcbsize, size_t tcbalign)
      The initialized value of _dl_tls_static_size is provided by dl-open.c
      to request some surplus that permits dynamic loading of modules with
      IE-model TLS.  */
+  /* 29/04/2016 : MG : replace sbrk by mmap since this commit disable sbrk area
+     for fdpic mmu less platform :
+     fs/binfmt_elf_fdpic.c: fix brk area overlap with stack on NOMMU
+     https://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/commit/fs/binfmt_elf_fdpic.c?id=4ac313111018cb44ecc250445de5ccb93026a980
+   */
 # if defined(TLS_TCB_AT_TP)
   tcb_offset = roundup (memsz + GL(dl_tls_static_size), tcbalign);
-  tlsblock = sbrk (tcb_offset + tcbsize + max_align);
+  tlsblock = mmap (NULL, tcb_offset + tcbsize + max_align,
+                   PROT_READ|PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
 # elif defined(TLS_DTV_AT_TP)
   tcb_offset = roundup (tcbsize, align ?: 1);
-  tlsblock = sbrk (tcb_offset + memsz + max_align
-		     + TLS_PRE_TCB_SIZE + GL(dl_tls_static_size));
+  tlsblock = mmap (NULL, tcb_offset + memsz + max_align + TLS_PRE_TCB_SIZE + GL(dl_tls_static_size),
+                   PROT_READ|PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+
   memset(tlsblock, '\0', tcb_offset + memsz + max_align + TLS_PRE_TCB_SIZE + GL(dl_tls_static_size));
   tlsblock += TLS_PRE_TCB_SIZE;
 # else
